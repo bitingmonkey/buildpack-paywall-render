@@ -77,6 +77,33 @@ run_build_if_present() {
   fi
 }
 
+run_build_if_present_without_build_flags() {
+  local build_dir=${1:-}
+  local script_name=${2:-}
+  local has_script_name
+  local script
+
+  has_script_name=$(has_script "$build_dir/package.json" "$script_name")
+  script=$(read_json "$build_dir/package.json" ".scripts[\"$script_name\"]")
+
+  if [[ "$script" == "ng build" ]]; then
+    warn "\"ng build\" detected as build script. We recommend you use \`ng build --prod\` or add \`--prod\` to your build flags. See https://devcenter.heroku.com/articles/nodejs-support#build-flags"
+  fi
+
+  if [[ "$has_script_name" == "true" ]]; then
+    if $YARN || $YARN_2; then
+      echo "Running $script_name (yarn)"
+      # yarn will throw an error if the script is an empty string, so check for this case
+      if [[ -n "$script" ]]; then
+          monitor "${script_name}-script" yarn run "$script_name"
+      fi
+    else
+      echo "Running $script_name"
+      monitor "${script_name}-script" npm run "$script_name" --if-present
+    fi
+  fi
+}
+
 run_prebuild_script() {
   local build_dir=${1:-}
   local has_heroku_prebuild_script
@@ -108,6 +135,27 @@ run_build_script() {
     run_build_if_present "$build_dir" 'build'
   fi
 }
+
+run_build_script_without_build_flags() {
+  local build_dir=${1:-}
+  local has_build_script has_heroku_build_script
+
+  has_build_script=$(has_script "$build_dir/package.json" "build")
+  has_heroku_build_script=$(has_script "$build_dir/package.json" "heroku-postbuild")
+  if [[ "$has_heroku_build_script" == "true" ]] && [[ "$has_build_script" == "true" ]]; then
+    echo "Detected both \"build\" and \"heroku-postbuild\" scripts"
+    mcount "scripts.heroku-postbuild-and-build"
+    run_if_present "$build_dir" 'heroku-postbuild'
+  elif [[ "$has_heroku_build_script" == "true" ]]; then
+    mcount "scripts.heroku-postbuild"
+    run_if_present "$build_dir" 'heroku-postbuild'
+  elif [[ "$has_build_script" == "true" ]]; then
+    mcount "scripts.build"
+    run_build_if_present_without_build_flags "$build_dir" 'build'
+  fi
+}
+
+
 
 run_cleanup_script() {
   local build_dir=${1:-}
