@@ -298,33 +298,38 @@ restore_cache() {
   meta_time "restore-cache-time" "$restore_cache_start_time"
 }
 
+### Check Paywall-engine Cache
+# ERROR - if fixed, uncomment all blocks with : ### Check Paywall-engine Cache
+# maybe cache of the compiled app exists but does not exists node_modules, caching...?
+# ERROR
 # check cache before node_modules restoration
-folder_sha() {
-  local dir folderhash
-  dir="$1"
-  folderhash=`find "$dir" -type f -exec sha256sum {} \; | sed "s~$dir~~g" | LC_ALL=C sort -d | sha256sum | cut -d$' ' -f 1`
-  echo $folderhash
-}
-CUSTOM_DIR_SHA=$(folder_sha "$CUSTOM_DIR") 
+# folder_sha() {
+#   local dir folderhash
+#   dir="$1"
+#   folderhash=`find "$dir" -type f -exec sha256sum {} \; | sed "s~$dir~~g" | LC_ALL=C sort -d | sha256sum | cut -d$' ' -f 1`
+#   echo $folderhash
+# }
+# CUSTOM_DIR_SHA=$(folder_sha "$CUSTOM_DIR") 
+
+### Check Paywall-engine Cache
 
 meta_set "build-step" "restore-cache"
 restore_cache | output "$LOG_FILE"
 
 ### Check Paywall-engine Cache
+# header "Check paywall-engine cache"
+# CACHE_CUSTOM_DIR="$CACHE_DIR/paywall-engine/$CUSTOM_DIR_SHA"
+# echo "       paywall-engine sha: $CUSTOM_DIR_SHA"
+# if [ -d "$CACHE_CUSTOM_DIR" ]; then
+#   echo "       paywall-engine cache found, restore..."
+#   mv_dir_content_to_dir "$CACHE_CUSTOM_DIR" "$OUTPUT_DIR"
 
-
-header "Check paywall-engine cache"
-CACHE_CUSTOM_DIR="$CACHE_DIR/paywall-engine/$CUSTOM_DIR_SHA"
-echo "       paywall-engine sha: $CUSTOM_DIR_SHA"
-if [ -d "$CACHE_CUSTOM_DIR" ]; then
-  echo "       paywall-engine cache found, restore..."
-  mv_dir_content_to_dir "$CACHE_CUSTOM_DIR" "$OUTPUT_DIR"
-
-  exit 0
-else
-  echo "       paywall-engine cache not found...compile from sources"
-  rm -rf "$CACHE_DIR/paywall-engine"
-fi
+#   exit 0
+# else
+#   echo "       paywall-engine cache not found...compile from sources"
+#   rm -rf "$CACHE_DIR/paywall-engine"
+# fi
+### Check Paywall-engine Cache
 
 build_dependencies() {
   local cache_status start
@@ -373,8 +378,10 @@ cache_build() {
     header "Caching build"
     save_custom_cache_directories "$CUSTOM_DIR" "$CACHE_DIR" "$cache_directories"
   fi
-  header "Caching paywall-render"
-  mv_dir_content_to_dir "$OUTPUT_DIR" "$CACHE_CUSTOM_DIR"
+  ### Check Paywall-engine Cache
+  # header "Caching paywall-render"
+  # mv_dir_content_to_dir "$OUTPUT_DIR" "$CACHE_CUSTOM_DIR"
+  ### Check Paywall-engine Cache
 
   save_signature "$CACHE_DIR"
   meta_time "save-cache-time" "$cache_build_start_time"
